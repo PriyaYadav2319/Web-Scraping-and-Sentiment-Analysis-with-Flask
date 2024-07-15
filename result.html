@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sentiment Analysis Result</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .container {
+            margin-top: 20px;
+        }
+        .card {
+            margin-top: 20px;
+        }
+        .card-header {
+            font-weight: bold;
+        }
+        .result-table td, .result-table th {
+            padding: 10px;
+        }
+        .scraped-content {
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: #f1f1f1;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        .analysis-container {
+            max-height: 300px; /* Adjust max-height as needed */
+            overflow-y: auto;
+            background-color: #f1f1f1;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+            /* Ensure vertical scrollbar only */
+            overflow-x: hidden; /* Hide horizontal scrollbar */
+        }
+        .badge {
+            margin-right: 5px;
+            background-color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                Sentiment Analysis Result for {{ url }}
+            </div>
+            <div class="card-body">
+                {% if error %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                {% else %}
+                    <div class="card">
+                        <div class="card-header">
+                            Sentiment Analysis
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Sentiment:</strong> {{ sentiment }}</p>
+                            <p><strong>Polarity:</strong> {{ polarity }}</p>
+                            <p><strong>Subjectivity:</strong> {{ subjectivity }}</p>
+                            <p><strong>Extracted Hashtags:</strong>
+                                {% if hashtags %}
+                                    {% for tag in hashtags %}
+                                        <span class="badge badge-light">{{ tag }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    No hashtags found.
+                                {% endif %}
+                            </p>
+                            <p><strong>Scraped Content:</strong></p>
+                            <div class="scraped-content">
+                                {{ scraped_content }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            Additional Analysis
+                        </div>
+                        <div class="card-body">
+                            <div id="model-scroll" class="analysis-container">
+                                <h5>Best Model: {{ additional_analysis_data.best_model }}</h5>
+                                <h6>Model Metrics:</h6>
+                                <ul>
+                                    {% for model, metrics in additional_analysis_data.model_metrics.items() %}
+                                        <li>{{ model }} - MSE: {{ metrics.MSE }}, R2: {{ metrics.R2 }}</li>
+                                    {% endfor %}
+                                </ul>
+                                <img src="{{ url_for('static', filename=additional_analysis_data.plot_filename) }}" class="img-fluid" alt="Best Model Prediction Plot">
+                            </div>
+
+                            <div id="ecommerce-category-scroll" class="analysis-container">
+                                <h6>E-commerce Category Counts:</h6>
+                                <ul>
+                                    {% for category, count in additional_analysis_data.ecommerce_category_counts.items() %}
+                                        <li>{{ category }}: {{ count }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+
+                            <div id="ecommerce-hashtags-scroll" class="analysis-container">
+                                <h6>E-commerce Trending Hashtags:</h6>
+                                <ul>
+                                    {% if additional_analysis_data.ecommerce_trending_hashtags %}
+                                        {% for hashtag in additional_analysis_data.ecommerce_trending_hashtags %}
+                                            <li>{{ hashtag }}</li>
+                                        {% endfor %}
+                                    {% else %}
+                                        <li>No hashtags found.</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+
+                            <div id="ecommerce-data-scroll" class="analysis-container">
+                                <h6>E-commerce Complete Data:</h6>
+                                <div>
+                                    {% for item in additional_analysis_data.ecommerce_complete_data %}
+                                        <ul>
+                                            {% for key, value in item.items() %}
+                                                <li><strong>{{ key }}:</strong> {{ value }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div id="news-category-scroll" class="analysis-container">
+                                <h6>News Category Counts:</h6>
+                                <ul>
+                                    {% for category, count in additional_analysis_data.news_category_counts.items() %}
+                                        <li>{{ category }}: {{ count }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+
+
+
+                            <div id="news-data-scroll" class="analysis-container">
+                                <h6>News Complete Data:</h6>
+                                <div>
+                                    {% for item in additional_analysis_data.news_complete_data %}
+                                        <ul>
+                                            {% for key, value in item.items() %}
+                                                <li><strong>{{ key }}:</strong> {{ value }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div id="education-category-scroll" class="analysis-container">
+                                <h6>Education Category Counts:</h6>
+                                <ul>
+                                    {% for category, count in additional_analysis_data.education_category_counts.items() %}
+                                        <li>{{ category }}: {{ count }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+
+                            <div id="education-hashtags-scroll" class="analysis-container">
+                                <h6>Education Trending Hashtags:</h6>
+                                <ul>
+                                    {% for hashtag in additional_analysis_data.education_trending_hashtags %}
+                                        <li>{{ hashtag }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+
+                            <div id="education-data-scroll" class="analysis-container">
+                                <h6>Education Complete Data:</h6>
+                                <div>
+                                    {% for item in additional_analysis_data.education_complete_data %}
+                                        <ul>
+                                            {% for key, value in item.items() %}
+                                                <li><strong>{{ key }}:</strong> {{ value }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div id="storage-category-scroll" class="analysis-container">
+                                <h6>Storage Category Counts:</h6>
+                                <ul>
+                                    {% for category, count in additional_analysis_data.storage_category_counts.items() %}
+                                        <li>{{ category }}: {{ count }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+
+                            <div id="storage-hashtags-scroll" class="analysis-container">
+                                <h6>Storage Trending Hashtags:</h6>
+                                <ul>
+                                    {% if additional_analysis_data.storage_trending_hashtags %}
+                                        {% for hashtag in additional_analysis_data.storage_trending_hashtags %}
+                                            <li>{{ hashtag }}</li>
+                                        {% endfor %}
+                                    {% else %}
+                                        <li>No hashtags found.</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+
+                            <div id="storage-data-scroll" class="analysis-container">
+                                <h6>Storage Complete Data:</h6>
+                                <div>
+                                    {% for item in additional_analysis_data.storage_complete_data %}
+                                        <ul>
+                                            {% for key, value in item.items() %}
+                                                <li><strong>{{ key }}:</strong> {{ value }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div id="other-category-scroll" class="analysis-container">
+                                <h6>Other Category Counts:</h6>
+                                <ul>
+                                    {% for category, count in additional_analysis_data.other_category_counts.items() %}
+                                        <li>{{ category }}: {{ count }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+
+                            <div id="other-hashtags-scroll" class="analysis-container">
+                                <h6>Other Trending Hashtags:</h6>
+                                <ul>
+                                    {% if additional_analysis_data.other_trending_hashtags %}
+                                        {% for hashtag in additional_analysis_data.other_trending_hashtags %}
+                                            <li>{{ hashtag }}</li>
+                                        {% endfor %}
+                                    {% else %}
+                                        <li>No hashtags found.</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+
+                            <div id="other-data-scroll" class="analysis-container">
+                                <h6>Other Complete Data:</h6>
+                                <div>
+                                    {% for item in additional_analysis_data.other_complete_data %}
+                                        <ul>
+                                            {% for key, value in item.items() %}
+                                                <li><strong>{{ key }}:</strong> {{ value }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div id="ecommerce-category-scroll-flipkart" class="analysis-container">
+                                <h6>E-commerce Category Counts (Flipkart):</h6>
+                                <ul>
+                                    {% for category, count in additional_analysis_data.ecommerce_category_counts_flipkart.items() %}
+                                        <li>{{ category }}: {{ count }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+
+                            <div id="ecommerce-hashtags-scroll-flipkart" class="analysis-container">
+                                <h6>E-commerce Trending Hashtags (Flipkart):</h6>
+                                <ul>
+                                    {% if additional_analysis_data.trending_hashtags_flipkart %}
+                                        {% for hashtag in additional_analysis_data.trending_hashtags_flipkart %}
+                                            <li>{{ hashtag }}</li>
+                                        {% endfor %}
+                                    {% else %}
+                                        <li>No hashtags found.</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+
+                            <div id="insights-ecommerce-scroll-flipkart" class="analysis-container">
+                                <h6>Insights of E-commerce URLs (Flipkart):</h6>
+                                <ul>
+                                    {% for insight in additional_analysis_data.insights_ecommerce_flipkart %}
+                                        <li>{{ insight }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+
+                            <div id="product-info-ecommerce-scroll-flipkart" class="analysis-container">
+                                <h6>Product Information (E-commerce, Flipkart):</h6>
+                                <ul>
+                                    {% if additional_analysis_data.product_info_ecommerce_flipkart %}
+                                        {% for product, infos in additional_analysis_data.product_info_ecommerce_flipkart.items() %}
+                                            <li>{{ product }}: {{ infos }}</li>
+                                        {% endfor %}
+                                    {% else %}
+                                        <li>No product information available.</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                            <p><strong>URL:</strong> {{ url }}</p> <!-- Include URL here -->
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>
